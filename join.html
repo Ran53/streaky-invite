@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Challenge - Streakly</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .emoji {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        .challenge-name {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 20px;
+            margin: 15px 0;
+        }
+        .details {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: transform 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .loading {
+            display: none;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            display: none;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .debug {
+            display: none;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 11px;
+            word-break: break-all;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji">🔥</div>
+        <h1>Join Challenge on Streakly</h1>
+        
+        <div class="challenge-name" id="challengeName">Loading...</div>
+        
+        <div class="details">
+            <div class="detail-item">
+                <span>📅 Duration:</span>
+                <strong id="duration">-</strong>
+            </div>
+            <div class="detail-item">
+                <span>👤 Created by:</span>
+                <strong id="creator">-</strong>
+            </div>
+        </div>
+        
+        <button class="btn" id="openBtn" onclick="openApp()">
+            Open in Streakly App
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            Opening app...
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            ⚠️ <strong>App didn't open?</strong><br>
+            Make sure Streakly app is installed.<br>
+            <a href="#" style="color: #667eea; text-decoration: underline;">Download from Play Store</a>
+        </div>
+        
+        <p style="color: #999; font-size: 12px; margin-top: 20px;">
+            Don't have the app? <a href="#" style="color: #667eea;">Download Streakly</a>
+        </p>
+        
+        <div class="debug" id="debug"></div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const challengeId = urlParams.get('c');
+        const groupId = urlParams.get('g');
+        const name = urlParams.get('n');
+        const duration = urlParams.get('d');
+        const creator = urlParams.get('by');
+        
+        // Debug info
+        const debugDiv = document.getElementById('debug');
+        debugDiv.innerHTML = `
+            Challenge ID: ${challengeId}<br>
+            Group ID: ${groupId}<br>
+            Name: ${name}<br>
+            Duration: ${duration}<br>
+            Creator: ${creator}
+        `;
+        debugDiv.style.display = 'block';
+        
+        // Display challenge info
+        if (name) {
+            document.getElementById('challengeName').textContent = decodeURIComponent(name);
+        }
+        if (duration) {
+            document.getElementById('duration').textContent = duration + ' days';
+        }
+        if (creator) {
+            document.getElementById('creator').textContent = decodeURIComponent(creator);
+        }
+        
+        // Build deep link
+        const deepLink = `streakly://join?c=${challengeId}&g=${groupId}&n=${name}&d=${duration}&by=${creator}`;
+        
+        console.log('Deep link:', deepLink);
+        debugDiv.innerHTML += `<br><br>Deep Link:<br>${deepLink}`;
+        
+        // Function to open app
+        function openApp() {
+            console.log('Opening app...');
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('openBtn').style.display = 'none';
+            
+            // Try to open app
+            window.location.href = deepLink;
+            
+            // Check if app opened
+            let appOpened = false;
+            
+            // If user returns to page, app probably didn't open
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    appOpened = true;
+                }
+            });
+            
+            // Show error if app didn't open after 2 seconds
+            setTimeout(() => {
+                if (!appOpened) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('openBtn').style.display = 'block';
+                    document.getElementById('openBtn').textContent = 'Try Again';
+                }
+            }, 2000);
+        }
+        
+        // Try auto-open after 1.5 seconds (gives user time to read)
+        setTimeout(() => {
+            // Don't auto-open on desktop
+            if (!/Mobi|Android/i.test(navigator.userAgent)) {
+                document.getElementById('openBtn').textContent = 'Tap to Open App';
+                return;
+            }
+            
+            // Auto-open on mobile
+            openApp();
+        }, 1500);
+    </script>
+</body>
+</html>
